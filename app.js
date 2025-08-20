@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const methodOverride = require("method-override");
 const Campground = require("./models/campground");
 const ejsMate = require("ejs-mate");
+const { render } = require("ejs");
 
 mongoose.connect("mongodb://127.0.0.1:27017/yelp-camp");
 
@@ -35,9 +36,13 @@ app.get("/campgrounds/new", (req, res) => {
     res.render("campgrounds/new");
 });
 
-app.get("/campgrounds/:id", async (req, res) => {
-    const campground = await Campground.findById(req.params.id);
-    res.render("campgrounds/show", { campground });
+app.get("/campgrounds/:id", async (req, res, next) => {
+    try {
+        const campground = await Campground.findById(req.params.id);
+        res.render("campgrounds/show", { campground });
+    } catch (e) {
+        next(e);
+    }
 });
 
 app.get("/campgrounds/:id/edit", async (req, res) => {
@@ -65,6 +70,12 @@ app.delete("/campgrounds/:id", async (req, res) => {
     const { id } = req.params;
     await Campground.findByIdAndDelete(id);
     res.redirect("/campgrounds");
+});
+
+app.use((err, req, res, next) => {
+    const { statusCode = 500 } = err;
+    if (!err.message) err.message = "Something went wrong!";
+    res.status(statusCode).render("error", { err });
 });
 
 app.listen(3000, () => {
