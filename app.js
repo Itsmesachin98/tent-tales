@@ -6,12 +6,13 @@ const session = require("express-session");
 const flash = require("connect-flash");
 const User = require("./models/user");
 const passport = require("passport");
-// const LocalStrategy = require("passport-local");
 
+// Import route handlers for campgrounds, reviews, and users
 const campgroundRoutes = require("./routes/campgrounds");
 const reviewRoutes = require("./routes/reviews");
 const userRoutes = require("./routes/users");
 
+// Import and execute the database connection function to establish a connection with MongoDB
 const connectDB = require("./config/database");
 connectDB();
 
@@ -42,7 +43,6 @@ app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 
-// passport.use(new LocalStrategy(User.authenticate()));
 passport.use(User.createStrategy());
 
 passport.serializeUser(User.serializeUser());

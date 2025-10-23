@@ -28,9 +28,9 @@ router.get("/new", isLoggedIn, (req, res) => {
 
 router.get("/:id", async (req, res, next) => {
     try {
-        const campground = await Campground.findById(req.params.id).populate(
-            "reviews"
-        );
+        const campground = await Campground.findById(req.params.id)
+            .populate("reviews")
+            .populate("author");
         res.render("campgrounds/show", { campground });
     } catch (e) {
         next(e);
@@ -44,6 +44,7 @@ router.get("/:id/edit", isLoggedIn, async (req, res) => {
 
 router.post("/", isLoggedIn, validateCampground, async (req, res) => {
     const campground = new Campground(req.body.campground);
+    campground.author = req.user._id;
     await campground.save();
     req.flash("success", "Successfully made a new campground");
     res.redirect(`/campgrounds/${campground._id}`);
