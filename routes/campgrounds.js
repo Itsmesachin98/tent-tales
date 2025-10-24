@@ -5,6 +5,7 @@ const Campground = require("../models/campground");
 const ExpressError = require("../utils/ExpressError");
 const { campgroundSchema } = require("../schemas");
 const { isLoggedIn } = require("../middleware");
+const mongoose = require("mongoose");
 
 function validateCampground(req, res, next) {
     const { error } = campgroundSchema.validate(req.body);
@@ -37,9 +38,38 @@ router.get("/:id", async (req, res, next) => {
     }
 });
 
+// GET route for editing a campground
 router.get("/:id/edit", isLoggedIn, async (req, res) => {
-    const campground = await Campground.findById(req.params.id);
-    res.render("campgrounds/edit", { campground });
+    try {
+        const { id } = req.params;
+
+        const campground = await Campground.findById(id);
+
+        // Check if the campground exists
+        if (!campground) {
+            req.flash("error", "Cannot find that campground!");
+            return res.redirect("/campgrounds");
+        }
+
+        // Check if the logged-in user is the author of the campground
+        if (!campground.author.equals(req.user._id)) {
+            req.flash(
+                "error",
+                "You do not have permission to edit this campground."
+            );
+            return res.redirect(`/campgrounds/${id}`);
+        }
+
+        // Render the edit form
+        res.render("campgrounds/edit", { campground });
+    } catch (err) {
+        console.error("Error fetching campground for edit:", err);
+        req.flash(
+            "error",
+            "Something went wrong while trying to edit the campground."
+        );
+        res.redirect("/campgrounds");
+    }
 });
 
 router.post("/", isLoggedIn, validateCampground, async (req, res) => {
@@ -50,13 +80,15 @@ router.post("/", isLoggedIn, validateCampground, async (req, res) => {
     res.redirect(`/campgrounds/${campground._id}`);
 });
 
-router.put("/:id", validateCampground, async (req, res) => {
+router.put("/:id", isLoggedIn, validateCampground, async (req, res) => {
     const { id } = req.params;
+    const campground = await Campground.findById(id);
+    if (!campground.author.equals(req.user._id)) {
+        req.flash("error", "You do not have permission to do that");
+        return res.redirect(`/campgrounds/${id}`);
+    }
     const { title, location } = req.body.campground;
-    const campground = await Campground.findByIdAndUpdate(id, {
-        title,
-        location,
-    });
+    await Campground.findByIdAndUpdate(id, { title, location });
     req.flash("success", "Successfully updated campground");
     res.redirect(`/campgrounds/${campground._id}`);
 });
