@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router({ mergeParams: true });
 
-const { isLoggedIn, validateReview } = require("../middleware");
+const { isLoggedIn, validateReview, isReviewAuthor } = require("../middleware");
 const Campground = require("../models/campground");
 const Review = require("../models/review");
 
@@ -16,7 +16,7 @@ router.post("/", isLoggedIn, validateReview, async (req, res) => {
     res.redirect(`/campgrounds/${campground._id}`);
 });
 
-router.delete("/:reviewId", async (req, res) => {
+router.delete("/:reviewId", isLoggedIn, isReviewAuthor, async (req, res) => {
     const { id, reviewId } = req.params;
     await Campground.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
     await Review.findByIdAndDelete(reviewId);
