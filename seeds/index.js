@@ -21,7 +21,12 @@ async function seedDB() {
             author: "68f72035f6e02b3bd38d369e",
             title: `${places[i]}, ${descriptors[i]}`,
             location: `${cities[i].city}, ${cities[i].state}`,
-            image: `https://picsum.photos/400?random=${Math.random()}`,
+            images: [
+                {
+                    url: "https://res.cloudinary.com/dibvspqcg/image/upload/v1761749599/TentTales/wj0dkwfrlxnivfhuf3ei.jpg",
+                    filename: "TentTales/ryox57ncpchmuj01beps",
+                },
+            ],
             price,
             description:
                 "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Id minima fugiat dicta et natus tempore, placeat provident voluptates unde a facilis vitae nostrum quis quos accusamus ad pariatur quo doloribus.",
